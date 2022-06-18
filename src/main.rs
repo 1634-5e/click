@@ -172,6 +172,7 @@ fn text(content: &str) -> RichText {
     RichText::new(content).size(20.)
 }
 
+//...
 // fn convert_key(key: Keyboard) -> Option<Key> {
 //     match key {
 //         Keyboard::A => Some(Key::A),
