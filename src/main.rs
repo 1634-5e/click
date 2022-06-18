@@ -3,14 +3,13 @@
 #![feature(mutex_unlock)]
 
 use eframe::epaint::Color32;
-use egui_hotkey::Hotkey;
 use mouse_rs::{types::keys::Keys, Mouse};
 use saved_config::{load_config, save_config, SavedState};
 use std::sync::Mutex;
 use std::time::Duration;
 use std::{sync::Arc, thread::sleep};
 
-use eframe::egui::{self, Button, Key, RichText};
+use eframe::egui::{self, Button, RichText};
 
 use mki::{remove_key_bind, Keyboard};
 
@@ -27,6 +26,8 @@ fn main() {
         always_on_top: config.always_on_top,
         min_window_size: Some([1., 1.].into()),
         initial_window_size: Some([200., 80.].into()),
+        initial_window_pos: Some([0., 0.].into()),
+        resizable: false,
         ..eframe::NativeOptions::default()
     };
     eframe::run_native(
@@ -185,7 +186,7 @@ fn click(mouse: Arc<Mouse>, freq: Arc<u64>, job: Arc<Mutex<Status>>) {
         mouse.click(&Keys::LEFT).expect("Unable to click");
         sleep(Duration::from_millis(1000 / *freq));
 
-        (i + 1) % (*freq / 10) == 0 && job.lock().unwrap().should_stop()
+        (i + 1) % (*freq / 10 + 1) == 0 && job.lock().unwrap().should_stop()
     });
 }
 
