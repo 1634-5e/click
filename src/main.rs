@@ -1,6 +1,5 @@
 // #![allow(unused)]
 #![windows_subsystem = "windows"]
-#![feature(mutex_unlock)]
 
 use eframe::epaint::Color32;
 use mouse_rs::{types::keys::Keys, Mouse};
@@ -89,10 +88,7 @@ impl Click {
     }
 
     fn get_job_once(&self) -> Status {
-        let job_guard = self.job.lock().unwrap();
-        let job_status = *job_guard;
-        Mutex::unlock(job_guard);
-        job_status
+        *self.job.lock().unwrap()
     }
 }
 
