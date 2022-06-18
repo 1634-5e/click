@@ -1,4 +1,5 @@
 // #![allow(unused)]
+#![windows_subsystem = "windows"]
 #![feature(mutex_unlock)]
 
 use eframe::epaint::Color32;
@@ -16,7 +17,14 @@ use mki::{remove_key_bind, Keyboard};
 mod saved_config;
 
 fn main() {
+    let config = if let Ok(Some(config)) = load_config() {
+        config
+    } else {
+        SavedState::default()
+    };
+
     let native_options = eframe::NativeOptions {
+        always_on_top: config.always_on_top,
         min_window_size: Some([1., 1.].into()),
         initial_window_size: Some([200., 80.].into()),
         ..eframe::NativeOptions::default()
@@ -24,7 +32,13 @@ fn main() {
     eframe::run_native(
         "Click",
         native_options,
-        Box::new(|_cc| Box::new(Click::new())),
+        Box::new(move |_cc| {
+            Box::new(Click::new(
+                config.key_bind,
+                Arc::new(config.freq),
+                config.always_on_top,
+            ))
+        }),
     );
 }
 
@@ -57,26 +71,19 @@ struct Click {
     status: Status,
     job: Arc<Mutex<Status>>,
     dirty: bool,
+    always_on_top: bool,
 }
 
 impl Click {
-    fn new() -> Self {
-        let fall_back = Self {
-            key_bind: Keyboard::F5,
-            freq: Arc::new(10),
+    fn new(key_bind: Keyboard, freq: Arc<u64>, always_on_top: bool) -> Self {
+        Self {
+            key_bind,
+            freq,
+            always_on_top,
             mouse: Arc::new(Mouse::new()),
             status: Status::Ready,
             job: Arc::new(Mutex::new(Status::Ready)),
             dirty: false,
-        };
-        if let Ok(Some(config)) = load_config() {
-            Self {
-                key_bind: config.key_bind,
-                freq: Arc::new(config.freq),
-                ..fall_back
-            }
-        } else {
-            fall_back
         }
     }
 
@@ -97,29 +104,43 @@ impl eframe::App for Click {
                     if let Ok(_) = save_config(SavedState {
                         key_bind: self.key_bind,
                         freq: *self.freq,
+                        always_on_top: self.always_on_top,
                     }) {
                         self.dirty = false;
                     }
                 }
 
-                if let Some(freq) = Arc::get_mut(&mut self.freq) {
-                    let response = ui.add(egui::Slider::new(freq, 1..=100));
-                    if response.drag_released() {
-                        self.dirty = true;
-                    }
-                }
-
-                // ui.horizontal_centered(|ui| {
-                //     if let Some(freq) = Arc::get_mut(&mut self.freq) {
-                //         let response = ui.add(egui::Slider::new(freq, 1..=100));
-                //         if response.drag_released() {
-                //             self.dirty = true;
-                //         }
-                //         // if Hotkey::new(&mut self.key_bind).ui(ui).changed() {
-                //         //     println!("Rebinded!");
-                //         // }
+                // if let Some(freq) = Arc::get_mut(&mut self.freq) {
+                //     let response = ui.add(egui::Slider::new(freq, 1..=100));
+                //     if response.drag_released() {
+                //         self.dirty = true;
                 //     }
-                // });
+                // }
+
+                ui.horizontal(|ui| {
+                    if let Some(freq) = Arc::get_mut(&mut self.freq) {
+                        let response = ui.add(egui::Slider::new(freq, 1..=100));
+                        if response.drag_released() {
+                            self.dirty = true;
+                        }
+
+                        if self.always_on_top {
+                            let res = ui.add(Button::new("TOP").fill(Color32::GRAY));
+                            if res.clicked() {
+                                self.always_on_top = !self.always_on_top;
+                                self.dirty = true;
+                            }
+                        } else {
+                            if ui.button("TOP").clicked() {
+                                self.always_on_top = !self.always_on_top;
+                                self.dirty = true;
+                            }
+                        }
+                        // if Hotkey::new(&mut self.key_bind).ui(ui).changed() {
+                        //     println!("Rebinded!");
+                        // }
+                    }
+                });
 
                 match self.status {
                     Status::Ready => {

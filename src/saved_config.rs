@@ -38,6 +38,17 @@ impl From<serde_json::Error> for Error {
 pub struct SavedState {
     pub key_bind: Keyboard,
     pub freq: u64,
+    pub always_on_top: bool,
+}
+
+impl Default for SavedState {
+    fn default() -> Self {
+        Self {
+            key_bind: Keyboard::F5,
+            freq: 10,
+            always_on_top: true,
+        }
+    }
 }
 
 pub fn save_config(saved_state: SavedState) -> Result<(), Error> {
