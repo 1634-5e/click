@@ -7,6 +7,8 @@ use std::{sync::Arc, thread::sleep};
 
 use eframe::egui::{self, Button, RichText};
 use eframe::epaint::Color32;
+
+// use mki_fork::{bind_key, Action, InhibitEvent};
 use mki_fork::{remove_key_bind, Keyboard};
 use mouse_rs::{types::keys::Keys, Mouse};
 
@@ -74,6 +76,8 @@ struct Click {
 }
 
 impl Click {
+    const UPPER_BOUND: u64 = 200;
+
     fn new(key_bind: Keyboard, freq: Arc<u64>, always_on_top: bool) -> Self {
         Self {
             key_bind,
@@ -136,6 +140,34 @@ impl eframe::App for Click {
                             let freq = self.freq.clone();
                             let job = self.job.clone();
                             let job_status = self.get_job_once();
+                            //这个会在按下的时候重复输入导致“键盘连点”
+                            // match job_status {
+                            //     Status::Ready => {
+                            //         bind_key(
+                            //             self.key_bind,
+                            //             Action {
+                            //                 callback: Box::new(move |_event, _state| {
+                            //                     job.lock().unwrap().switch();
+                            //                     click(freq.to_owned(), job.to_owned());
+                            //                 }),
+                            //                 inhibit: InhibitEvent::Yes,
+                            //                 sequencer: false,
+                            //                 defer: true,
+                            //             },
+                            //         );
+                            //     }
+                            //     Status::Running => bind_key(
+                            //         self.key_bind,
+                            //         Action {
+                            //             callback: Box::new(move |_event, _state| {
+                            //                 job.lock().unwrap().switch()
+                            //             }),
+                            //             inhibit: InhibitEvent::Yes,
+                            //             sequencer: false,
+                            //             defer: true,
+                            //         },
+                            //     ),
+                            // }
                             self.key_bind.bind(move |_| match job_status {
                                 Status::Ready => {
                                     job.lock().unwrap().switch();
@@ -143,6 +175,7 @@ impl eframe::App for Click {
                                 }
                                 Status::Running => job.lock().unwrap().switch(),
                             });
+
                             self.status.switch();
                         }
                     }
@@ -169,7 +202,7 @@ impl eframe::App for Click {
 fn click(freq: Arc<u64>, job: Arc<Mutex<Status>>) {
     let mouse = Mouse::new();
     // let time = std::time::Instant::now();
-    (0..).find(|i| {
+    (0..Click::UPPER_BOUND).find(|i| {
         mouse.click(&Keys::LEFT).expect("Unable to click");
         sleep(Duration::from_millis(1000 / *freq));
 
