@@ -191,11 +191,11 @@ version = "0.1.0"
 dependencies = [
  "app_dirs2",
  "eframe",
- "egui_hotkey",
  "mki_fork",
  "mouse-rs",
  "serde",
  "serde_json",
+ "thiserror",
 ]
 
 [[package]]
@@ -492,15 +492,6 @@ dependencies = [
  "tracing",
  "wasm-bindgen",
  "web-sys",
-]
-
-[[package]]
-name = "egui_hotkey"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3e0082b45662d2ef879388ab77765c7380c423a1e918316ebc8748392112d18"
-dependencies = [
- "egui",
 ]
 
 [[package]]

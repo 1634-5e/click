@@ -2,7 +2,9 @@ use std::{fs, fs::File, io::BufReader};
 
 use app_dirs2::{get_app_dir, AppDataType, AppDirsError, AppInfo};
 use mki_fork::Keyboard;
+
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 const APP_INFO: AppInfo = AppInfo {
     name: "never use",
@@ -10,9 +12,13 @@ const APP_INFO: AppInfo = AppInfo {
 };
 const FILE_NAME: &str = "saved_config";
 
+#[derive(Error, Debug)]
 pub enum Error {
+    #[error("cannot get proper configuration dir of this OS")]
     GetDirError,
+    #[error("failed to get data from file")]
     IoError,
+    #[error("failed to ser/de")]
     SerdeError,
 }
 

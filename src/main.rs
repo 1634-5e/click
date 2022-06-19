@@ -1,18 +1,18 @@
 // #![allow(unused)]
 #![windows_subsystem = "windows"]
 
-use eframe::epaint::Color32;
-use mouse_rs::{types::keys::Keys, Mouse};
-use saved_config::{load_config, save_config, SavedState};
 use std::sync::Mutex;
 use std::time::Duration;
 use std::{sync::Arc, thread::sleep};
 
 use eframe::egui::{self, Button, RichText};
-
+use eframe::epaint::Color32;
 use mki_fork::{remove_key_bind, Keyboard};
+use mouse_rs::{types::keys::Keys, Mouse};
 
 mod saved_config;
+
+use saved_config::{load_config, save_config, SavedState};
 
 fn main() {
     let config = if let Ok(Some(config)) = load_config() {
@@ -67,7 +67,6 @@ impl Status {
 struct Click {
     key_bind: Keyboard,
     freq: Arc<u64>,
-    mouse: Arc<Mouse>,
     status: Status,
     job: Arc<Mutex<Status>>,
     dirty: bool,
@@ -80,7 +79,6 @@ impl Click {
             key_bind,
             freq,
             always_on_top,
-            mouse: Arc::new(Mouse::new()),
             status: Status::Ready,
             job: Arc::new(Mutex::new(Status::Ready)),
             dirty: false,
@@ -98,21 +96,17 @@ impl eframe::App for Click {
             ui.vertical_centered_justified(|ui| {
                 ui.spacing_mut().item_spacing = [5., 10.].into();
                 if self.dirty {
-                    if let Ok(_) = save_config(SavedState {
+                    match save_config(SavedState {
                         key_bind: self.key_bind,
                         freq: *self.freq,
                         always_on_top: self.always_on_top,
                     }) {
-                        self.dirty = false;
+                        Ok(_) => {
+                            self.dirty = false;
+                        }
+                        Err(e) => eprint!("{:?}", e),
                     }
                 }
-
-                // if let Some(freq) = Arc::get_mut(&mut self.freq) {
-                //     let response = ui.add(egui::Slider::new(freq, 1..=100));
-                //     if response.drag_released() {
-                //         self.dirty = true;
-                //     }
-                // }
 
                 ui.horizontal(|ui| {
                     if let Some(freq) = Arc::get_mut(&mut self.freq) {
@@ -133,23 +127,19 @@ impl eframe::App for Click {
                                 self.dirty = true;
                             }
                         }
-                        // if Hotkey::new(&mut self.key_bind).ui(ui).changed() {
-                        //     println!("Rebinded!");
-                        // }
                     }
                 });
 
                 match self.status {
                     Status::Ready => {
                         if ui.button(text("Click to start service...")).clicked() {
-                            let mouse = self.mouse.clone();
                             let freq = self.freq.clone();
                             let job = self.job.clone();
                             let job_status = self.get_job_once();
                             self.key_bind.bind(move |_| match job_status {
                                 Status::Ready => {
                                     job.lock().unwrap().switch();
-                                    click(mouse.to_owned(), freq.to_owned(), job.to_owned());
+                                    click(freq.to_owned(), job.to_owned());
                                 }
                                 Status::Running => job.lock().unwrap().switch(),
                             });
@@ -176,7 +166,8 @@ impl eframe::App for Click {
     }
 }
 
-fn click(mouse: Arc<Mouse>, freq: Arc<u64>, job: Arc<Mutex<Status>>) {
+fn click(freq: Arc<u64>, job: Arc<Mutex<Status>>) {
+    let mouse = Mouse::new();
     // let time = std::time::Instant::now();
     (0..).find(|i| {
         mouse.click(&Keys::LEFT).expect("Unable to click");
