@@ -1,7 +1,7 @@
 use std::{fs, fs::File, io::BufReader};
 
 use app_dirs2::{get_app_dir, AppDataType, AppDirsError, AppInfo};
-use mki::Keyboard;
+use mki_fork::Keyboard;
 use serde::{Deserialize, Serialize};
 
 const APP_INFO: AppInfo = AppInfo {

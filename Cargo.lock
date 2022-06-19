@@ -192,7 +192,7 @@ dependencies = [
  "app_dirs2",
  "eframe",
  "egui_hotkey",
- "mki",
+ "mki_fork",
  "mouse-rs",
  "serde",
  "serde_json",
@@ -731,13 +731,14 @@ dependencies = [
 
 [[package]]
 name = "input"
-version = "0.6.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f68c2be575d5695a03d446acd1016b1665b26172fb37a75300459abeffba09d1"
+checksum = "f95640ef27dac9b23ef1fbd760c67a88ce3cab2143a2c18390e71f39c53b815f"
 dependencies = [
  "bitflags",
  "input-sys",
  "libc",
+ "log",
  "udev",
 ]
 
@@ -943,10 +944,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "mki"
+name = "mki_fork"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "824cba1cd67bc96623cfa4ebce495ef60317ad47f0ec7ff48c4eb5e271d8fb54"
+checksum = "702ae98883a0ff921a339ce34a28d4945043cc88c66235556f96276cc5db20dd"
 dependencies = [
  "input",
  "lazy_static",
