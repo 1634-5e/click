@@ -18,6 +18,17 @@ jobs:
           - target: x86_64-pc-windows-gnu
             archive: zip
     steps:
+      # 安装工具链
+      - uses: actions/checkout@v2
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: nightly
+            override: true
+            default: true
+            profile: minimal
+      
+      # 编译并发布
       - uses: actions/checkout@main
       - name: Compile and release
         uses: rust-build/rust-build.action@v1.3.2
