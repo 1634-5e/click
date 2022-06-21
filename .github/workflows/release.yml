@@ -17,17 +17,7 @@ jobs:
         include:
           - target: x86_64-pc-windows-gnu
             archive: zip
-    steps:
-      # 安装工具链
-      - uses: actions/checkout@v2
-      - name: Install latest nightly
-        uses: actions-rs/toolchain@v1
-        with:
-            toolchain: nightly
-            override: true
-            default: true
-            profile: minimal
-      
+    steps:  
       # 编译并发布
       - uses: actions/checkout@main
       - name: Compile and release
@@ -36,4 +26,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           RUSTTARGET: ${{ matrix.target }}
-          EXTRA_FILES: "README.md LICENSE"
+          TOOLCHAIN_VERSION: nightly
